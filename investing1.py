@@ -28,15 +28,20 @@ def stonks():
     #     urls.append(k)
     # # pprint(info)
     # pprint(urls)
-    m = 9
 
     for url in tqdm(urls1):
+        m = 9
         # print(9999999999999999999)
         r = requests.get(f'https://ru.tradingview.com{url}')
         # pprint(r.headers)
         html = BS(r.content, "html.parser")
         # pprint(html)
         info = html.find_all(class_="apply-common-tooltip tickerDescription-absbzmSX")
+        # info = html.find_all(class_="apply-common-tooltip tickerDescription-absbzmSX")
+        for i in info:
+            print(str(i))
+            key1 = 0
+            key2 = 0
         for i in info:
             country.append(url[16:-22])
             name.append(i.text)

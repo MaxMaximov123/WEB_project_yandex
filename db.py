@@ -4,12 +4,12 @@ import psycopg2
 a = 0
 if a:
     try:
-        conn = psycopg2.connect(user="mfitezskzynjlh",
+        conn = psycopg2.connect(user="postgres",
                                 # пароль, который указали при установке PostgreSQL
-                                password="f1fee7852b0c2a6d957fd5fff2c874a19ae06ecc1062bdc655fbf1b41c12836c",
-                                host="ec2-34-246-227-219.eu-west-1.compute.amazonaws.com",
-                                port="5432",
-                                database="d17vgbfokvor7q")
+                                password="Blanik",
+                                host="localhost",
+                                port="5433",
+                                database="NewsBot_TG")
 
         # Создайте курсор для выполнения операций с базой данных
         cursor = conn.cursor()
@@ -39,12 +39,12 @@ if a:
 
 class BotDB:
     def __init__(self):
-        self.conn = psycopg2.connect(user="mfitezskzynjlh",
+        self.conn = psycopg2.connect(user="postgres",
                                 # пароль, который указали при установке PostgreSQL
-                                password="f1fee7852b0c2a6d957fd5fff2c874a19ae06ecc1062bdc655fbf1b41c12836c",
-                                host="ec2-34-246-227-219.eu-west-1.compute.amazonaws.com",
-                                port="5432",
-                                database="d17vgbfokvor7q")
+                                password="Blanik",
+                                host="localhost",
+                                port="5433",
+                                database="NewsBot_TG")
         self.cursor = self.conn.cursor()
 
     def user_exists(self, id):

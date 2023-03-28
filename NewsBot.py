@@ -4,11 +4,11 @@ from random import randint
 from bs4 import BeautifulSoup as BS
 from config import *
 from db import *
+from forex_python.converter import CurrencyRates
 from telebot import types
 from schedule import every, run_pending
 import time
 from threading import Thread
-from fake_useragent import UserAgent
 import json
 # from investing import stonks
 from investing1 import stonks
@@ -26,6 +26,7 @@ BotDB = BotDB()
 btns = list(links.keys())
 htmls = {}
 admin = 1387680086
+currency = CurrencyRates()
 t = False
 
 
@@ -38,35 +39,31 @@ def birthday(id):
 
 
 def get_currency():
-    r = requests.get("https://invest.yandex.ru/catalog/currency/usd/")
-    html = BS(r.content, "html.parser")
-    dolVal = html.find_all(class_="QV5TZ0Aew_2aahfCgGmv")[0].text
-    try:
-        dolProc = html.find_all(class_="rzv7e6OPChq71rCQBr9H _9RS0xgK34zINnxUjOgH")
-        if len(dolProc) > 0:
-            dolProc = dolProc[0].text.split("  ₽")
-        else:
-            dolProc = ("0", html.find_all(class_="rzv7e6OPChq71rCQBr9H SUCnYTT5LFAlaqfSzDh5")[0].text)
-    except BaseException:
-        dolProc = ("0", "0%")
+    # r = requests.get("https://invest.yandex.ru/catalog/currency/usd/")
+    # html = BS(r.content, "html.parser")
+    # dolVal = html.find_all(class_="QV5TZ0Aew_2aahfCgGmv")[0].text
+    # try:
+    #     dolProc = html.find_all(class_="rzv7e6OPChq71rCQBr9H _9RS0xgK34zINnxUjOgH")
+    #     if len(dolProc) > 0:
+    #         dolProc = dolProc[0].text.split("  ₽")
+    #     else:
+    #         dolProc = ("0", html.find_all(class_="rzv7e6OPChq71rCQBr9H SUCnYTT5LFAlaqfSzDh5")[0].text)
+    # except BaseException:
+    #     dolProc = ("0", "0%")
+    #
+    # r = requests.get("https://invest.yandex.ru/catalog/currency/eur/")
+    # html = BS(r.content, "html.parser")
+    # euVal = html.find_all(class_="QV5TZ0Aew_2aahfCgGmv")[1].text
+    # try:
+    #     euProc = html.find_all(class_="rzv7e6OPChq71rCQBr9H _9RS0xgK34zINnxUjOgH")
+    #     if len(euProc) > 0:
+    #         euProc = euProc[0].text.split("  ₽")
+    #     else:
+    #         euProc = ("0", html.find_all(class_="rzv7e6OPChq71rCQBr9H SUCnYTT5LFAlaqfSzDh5")[0].text)
+    # except BaseException:
+    #     euProc = ("0", "0%")
+    return round(currency.get_rate('EUR', 'RUB'), 2), round(currency.get_rate('USD', 'RUB'), 2)
 
-    r = requests.get("https://invest.yandex.ru/catalog/currency/eur/")
-    html = BS(r.content, "html.parser")
-    euVal = html.find_all(class_="QV5TZ0Aew_2aahfCgGmv")[1].text
-    try:
-        euProc = html.find_all(class_="rzv7e6OPChq71rCQBr9H _9RS0xgK34zINnxUjOgH")
-        if len(euProc) > 0:
-            euProc = euProc[0].text.split("  ₽")
-        else:
-            euProc = ("0", html.find_all(class_="rzv7e6OPChq71rCQBr9H SUCnYTT5LFAlaqfSzDh5")[0].text)
-    except BaseException:
-        euProc = ("0", "0%")
-
-    return ((dolVal, dolProc), (euVal, euProc))
-
-
-# print(BotDB.get_modes(726169792))
-# print("−" in get_currency()[0][1][0])
 
 def get_horoscope(znak):
     r = requests.get(links[znak])
@@ -77,32 +74,20 @@ def get_horoscope(znak):
     return soup1, soup
 
 
-user_agent = UserAgent()
-# headers = {
-#   'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.174 YaBrowser/22.1.3.848 Yowser/2.5 Safari/537.36',
-#  'Cookies': 'news_lang=ru; nc=search-visits-per-week=1:1645123721000#tips=1645798458637%3Bfavorites-button:1; yandexuid=1979425991640958970; yuidss=1979425991640958970; ymex=1956318975.yrts.1640958975; _ym_uid=164095897515273997; is_gdpr=0; is_gdpr_b=CIayFBDgWSgC; L=ckx/fVN5cHZzbXJyfwJCVgZoAnpwAnByWio7IAR6Hlcr.1640959007.14843.312683.efc4def33cbaaa53ad367a64d4da598e; yandex_login=maxss.k2n; gdpr=0; mda=0; font_loaded=YSv1; my=YwA=; yandex_gid=141075; _ym_d=1646636780; _ym_isad=2; Session_id=3:1648930876.5.0.1640959007634:roHMsg:27.1.2:1|883187617.0.2|3:250351.906862.f9yBA7XrLdnkaUZVJ3D9weBtfCI; sessionid2=3:1648930876.5.0.1640959007634:roHMsg:27.1.2:1|883187617.0.2|3:250351.906862.f9yBA7XrLdnkaUZVJ3D9weBtfCI; i=P4LZY/kmCKVsJpcqBDFI9VCcTVeFozSw++sP2A3eqppbiKc+AYbF4FbB/BwKkk0q9d794Pi1mldi5aD0JNIyAujqROI=; sae=0:710DC4EF-8F5B-449A-8665-0C14D23D50E8:p:22.3.0.2430:w:d:RU:20211231; yabs-frequency=/5/0G0V09DlIM87GKbY/Uwi3wsa5ArFiHI40/; ys=svt.1#def_bro.1#ead.2FECB7CF#wprid.1648986756778026-6320314446020442131-vla1-4623-vla-l7-balancer-8080-BAL-7425#ybzcc.ru#newsca.native_cache; yp=1672495029.cld.2261448#1672495029.brd.0699000036#1657951229.szm.1_25:1536x864:1536x726#1649228778.ygu.1#1649315189.csc.1#1649185034.mct.null#1649067766.nwcst.1648982400_43_3#1649538359.mcv.0#1649538359.mcl.1695r7s#1648994592.gpauto.55_796288:49_108795:100000:3:1648987392; _yasc=0fI9qmrQ9yhJAksSwGPy/B2yZivBy3AV+KOmc+dwdeaqDMPY/PIQ2D4H9LcyM/90m9UYHFAhICQOfA==; cycada=FDvjM1vMh8RHU7xa8j/ZL7aqTBF4gvSVGzF6KKxkNI0='
-# }
-
-
 headers = {
-    'Cookie': 'news_lang=ru; nc=search-visits-per-week=1:1645123721000#tips=1645798458637;favorites-button:1; yandexuid=1979425991640958970; yuidss=1979425991640958970; ymex=1956318975.yrts.1640958975; _ym_uid=164095897515273997; is_gdpr=0; is_gdpr_b=CIayFBDgWSgC; L=ckx/fVN5cHZzbXJyfwJCVgZoAnpwAnByWio7IAR6Hlcr.1640959007.14843.312683.efc4def33cbaaa53ad367a64d4da598e; yandex_login=maxss.k2n; gdpr=0; mda=0; font_loaded=YSv1; my=YwA=; _ym_d=1646636780; i=P4LZY/kmCKVsJpcqBDFI9VCcTVeFozSw++sP2A3eqppbiKc+AYbF4FbB/BwKkk0q9d794Pi1mldi5aD0JNIyAujqROI=; yabs-frequency=/5/1W0V07ZIJM87GKbY/; sae=0:710DC4EF-8F5B-449A-8665-0C14D23D50E8:p:22.3.0.2430:w:d:RU:20211231; Session_id=3:1649526411.5.0.1640959007634:roHMsg:27.1.2:1|883187617.0.2|3:250679.349657.TeNA7_A_uIDkhq8VoiV1In4Krjw; sessionid2=3:1649526411.5.0.1640959007634:roHMsg:27.1.2:1|883187617.0.2|3:250679.349657.TeNA7_A_uIDkhq8VoiV1In4Krjw; ys=udn.cDptYXhzcy5rMm4=#wprid.1649532583296993-12934969148667915089-vla1-5154-vla-l7-balancer-8080-BAL-8136#c_chck.1616898368; _yasc=S2GX+LD5/CDBPYzSqiH9dp0iuBkacgDVJv+i0dY7adItfPdO8j4GFuQJkOXH8+/uRer8VrIHy3LDWA==; _ym_visorc=w; yp=1672495029.cld.2261448#1672495029.brd.0699000036#1657951229.szm.1_25:1536x864:1536x726#1649538359.mcv.5#1649538359.mcl.1695r7s#1649605199.gpauto.55_796288:49_108795:100000:3:1649597999; cycada=cGPw/+sK4DdmRGTkjF/+qbaqTBF4gvSVGzF6KKxkNI0=',
-    'user-agent': UserAgent().random,
-    'x-content-type-options': 'nosniff',
-    'x-xss-protection': '1; mode = block',
-    'x-yandex-req-id': '1649172793088961 - 9677378295724091123 - b4cdtzh6jefk6hgl - BAL - 6932'
-}
+    'cookie': 'sso_checked=1; Session_id=3:1663433035.5.0.1663433035738:6xZlBQ:20D.1.2:1|883187617.0.2|64:10003835.681836.xnGm7GifGL7Ca51K8l0VpzizisI; yandex_login=maxss.k2n; yandexuid=1979425991640958970; mda2_beacon=1663433035749; gdpr=0; _ym_d=1663433038; _ym_uid=16634330381069804080; vid=e8d0a90e328f8d78; tmr_lvid=4b172abb4997249b25454fd3166bb785; tmr_lvidTS=1664709380222; _yasc=8ScIIJd6joNRWrZw+Sqjf0f5NjkpTbuWeoNd7pRyT4ngVS01bXdy2C5/jgLV; zen_sso_checked=1; vsd=eyJnZW8iOiIxODgiLCJ1YSI6IllBQlJPV1NFUiIsImVhIjozMCwiZWciOjJ9; _ym_isad=2; tmr_detect=0%7C1677143581052',
+    'user-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 YaBrowser/23.1.3.949 Yowser/2.5 Safari/537.36',
+    }
 
 
 def get_news(url):
     try:
-        r = requests.get(url, headers=headers)
+        r = requests.get(url + '?issue_tld=ru&utm_referrer=dzen.ru', headers=headers)
         html = BS(r.text, "html.parser")
-        # print(html)
         if url == "https://yandex.ru/news":
             html = html.find(class_="mg-grid__row mg-grid__row_gap_8 news-top-flexible-stories news-app__top")
         news = html.find_all(class_="mg-card__title")
         ur = html.find_all(class_="mg-card__link")
-        # print(news, ur)
         return news, ur
     except Exception as error:
         print(error)
@@ -146,15 +131,9 @@ def save_stonks():
             k += 1
 
 
-# for i in range(10):
-#     for j in urls:
-#         pprint(get_news(j))
-#
-#     time.sleep(0.5)
-
 def save_all():
     save_html()
-    save_stonks()
+    # save_stonks()
 
 
 save_all()
@@ -166,6 +145,7 @@ def send_news(chat_id, topic, article):
     #         types.KeyboardButton(text="Меню↩"))
     # bot.send_message(chat_id, "Нажмите 'назад', чтобы сменить тему", reply_markup=markup)
     # markup.add(types.KeyboardButton(text="Меню↩"))
+    # pprint(htmls)
     if topic in htmls and article < len(htmls[topic][0]) - 1 and len(htmls[topic][0]) > 0 and len(htmls[topic][1]) > 0:
         markup = types.InlineKeyboardMarkup()
         skip = types.InlineKeyboardButton(text="Дальше", callback_data="skip")
@@ -306,15 +286,9 @@ def send_hor():
                 if "3" in BotDB.get_modes(i[0]) or BotDB.get_modes(i[0]) is None:
                     bot.send_message(i[0], "Курс валют💰:")
                     znach = get_currency()
-                    if "−" in znach[0][1][0]:
-                        dol = f"Доллар💵: {znach[0][0]}, за день: {znach[0][1][1]}🔻"
-                    else:
-                        dol = f"Доллар💵: {znach[0][0]}, за день: {znach[0][1][1]}🔺"
+                    dol = f"Доллар💵: {znach[1]}"
 
-                    if "−" in znach[1][1][0]:
-                        eu = f"Евро💶: {znach[1][0]}, за день: {znach[1][1][1]}🔻"
-                    else:
-                        eu = f"Евро💶: {znach[1][0]}, за день: {znach[1][1][1]}🔺"
+                    eu = f"Евро💶: {znach[0]}"
 
                     bot.send_message(i[0], f"""{dol}
 
@@ -335,7 +309,7 @@ def send_hor():
 
 
 every().day.at("05:00").do(send_hor)
-every(randint(10, 15)).minutes.do(save_all)
+every(5).minutes.do(save_all)
 
 
 def work():
@@ -543,18 +517,18 @@ def chat(message):
         markup1.add(home)
         bot.send_message(message.chat.id, "Чтобы вернуться, нажмите кнопку меню", reply_markup=markup1)
         markup = types.InlineKeyboardMarkup()
-        btn_0 = types.InlineKeyboardButton(text='Глвное❗', callback_data="https://yandex.ru/news")
-        btn_1 = types.InlineKeyboardButton(text='Казань🕌', callback_data="https://yandex.ru/news/region/kazan")
+        btn_0 = types.InlineKeyboardButton(text='Глвное❗', callback_data="https://dzen.ru/news")
+        btn_1 = types.InlineKeyboardButton(text='Казань🕌', callback_data="https://dzen.ru/news/region/kazan")
         btn_2 = types.InlineKeyboardButton(text='Коронавирус🦠',
-                                           callback_data="https://yandex.ru/news/rubric/koronavirus")
-        btn_3 = types.InlineKeyboardButton(text='Политика🇺🇳', callback_data="https://yandex.ru/news/rubric/politics")
-        btn_4 = types.InlineKeyboardButton(text='Экономика📈', callback_data="https://yandex.ru/news/rubric/business")
+                                           callback_data="https://dzen.ru/news/rubric/koronavirus")
+        btn_3 = types.InlineKeyboardButton(text='Политика🇺🇳', callback_data="https://dzen.ru/news/rubric/politics")
+        btn_4 = types.InlineKeyboardButton(text='Экономика📈', callback_data="https://dzen.ru/news/rubric/business")
         btn_5 = types.InlineKeyboardButton(text='Спорт⚽️',
-                                           callback_data="https://yandex.ru/sport?utm_source=yxnews&utm_medium=desktop")
+                                           callback_data="https://dzen.ru/sport?utm_source=yxnews&utm_medium=desktop")
         btn_6 = types.InlineKeyboardButton(text='Происшествия🚨',
-                                           callback_data="https://yandex.ru/news/rubric/incident")
-        btn_7 = types.InlineKeyboardButton(text='Культура🎨', callback_data="https://yandex.ru/news/rubric/culture")
-        btn_8 = types.InlineKeyboardButton(text='Технологии💻', callback_data="https://yandex.ru/news/rubric/computers")
+                                           callback_data="https://dzen.ru/news/rubric/incident")
+        btn_7 = types.InlineKeyboardButton(text='Культура🎨', callback_data="https://dzen.ru/news/rubric/culture")
+        btn_8 = types.InlineKeyboardButton(text='Технологии💻', callback_data="https://dzen.ru/news/rubric/computers")
         markup.add(btn_0)
         markup.add(btn_1)
         markup.add(btn_2)
@@ -659,15 +633,9 @@ def chat(message):
         back = types.KeyboardButton(text="Меню↩")
         markup.add(back)
         znach = get_currency()
-        if "−" in znach[0][1][0]:
-            dol = f"Доллар💵: {znach[0][0]}, за день: {znach[0][1][0]}🔻"
-        else:
-            dol = f"Доллар💵: {znach[0][0]}, за день: {znach[0][1][1]}🔺"
+        dol = f"Доллар💵: {znach[1]}"
 
-        if "−" in znach[1][1][0]:
-            eu = f"Евро💶: {znach[1][0]}, за день: {znach[1][1][0]}🔻"
-        else:
-            eu = f"Евро💶: {znach[1][0]}, за день: {znach[1][1][1]}🔺"
+        eu = f"Евро💶: {znach[0]}"
 
         bot.send_message(message.chat.id, f"""{dol}
 
@@ -703,10 +671,3 @@ th.start()
 
 th1 = Thread(target=bot.infinity_polling)
 th1.start()
-
-# bot.polling(none_stop=True)
-
-# if __name__ == '__main__':
-#     work()
-# if __name__ == '__main__':
-#   bot.infinity_polling()
